@@ -247,14 +247,14 @@ const SwapForm = () => {
 
     if (allowance < requiredAmount) {
       const allowanced = ethers.formatUnits(allowance, tokenIn.decimals);
-      messageApi.error(
+      messageApi.warning(
         `Insufficient approve amount, current approved amount: ${allowanced}, Swap limit: ${amountIn}`
       );
       return;
     }
 
     if (balanceAmount < requiredAmount) {
-      messageApi.error("Insufficient balance");
+      messageApi.warning("Insufficient balance");
       return;
     }
 
@@ -285,17 +285,17 @@ const SwapForm = () => {
   /// 检查交易对是否合法
   const verifySwapPair = () => {
     if (tokenIn.address == tokenOut.address) {
-      messageApi.error("Pair not supported. Select another");
+      messageApi.warning("Pair not supported. Select another");
       return false;
     }
 
     if (tokenIn.symbol == "USDT" && tokenOut.symbol == "USDC") {
-      messageApi.error("Pair not supported. Select another");
+      messageApi.warning("Pair not supported. Select another");
       return false;
     }
 
     if (tokenIn.symbol == "USDC" && tokenOut.symbol == "USDT") {
-      messageApi.error("Pair not supported. Select another");
+      messageApi.warning("Pair not supported. Select another");
       return false;
     }
 
