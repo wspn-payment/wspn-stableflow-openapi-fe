@@ -1,50 +1,112 @@
-# React + TypeScript + Vite
+# Stableflow OpenApi Web Demo
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+This is a decentralized token exchange (Swap) application demo based on React and TypeScript. The application allows users to securely exchange between different tokens.
 
-Currently, two official plugins are available:
+## Features
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react/README.md) uses [Babel](https://babeljs.io/) for Fast Refresh
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
+- Support 1:1 exchange between WUSD, USDT, and USDC
+- Integrated Web3 wallet connection
+- Real-time token balance query
+- Token approval management
+- Secure transaction execution through API
 
-## Expanding the ESLint configuration
+## Requirements
 
-If you are developing a production application, we recommend updating the configuration to enable type aware lint rules:
+- Node.js 20.0.0 or higher
+- Yarn package manager
+- MetaMask or other compatible Ethereum wallets
 
-- Configure the top-level `parserOptions` property like this:
+## Quick Start
 
-```js
-export default tseslint.config({
-  languageOptions: {
-    // other options...
-    parserOptions: {
-      project: ['./tsconfig.node.json', './tsconfig.app.json'],
-      tsconfigRootDir: import.meta.dirname,
-    },
-  },
-})
+### 1. Clone the Project
+
+```bash
+git clone https://github.com/wspn-payment/stableflow-openapi-fe.git
+cd stableflow-openapi-fe
 ```
 
-- Replace `tseslint.configs.recommended` to `tseslint.configs.recommendedTypeChecked` or `tseslint.configs.strictTypeChecked`
-- Optionally add `...tseslint.configs.stylisticTypeChecked`
-- Install [eslint-plugin-react](https://github.com/jsx-eslint/eslint-plugin-react) and update the config:
+### 2. Install Dependencies
 
-```js
-// eslint.config.js
-import react from 'eslint-plugin-react'
-
-export default tseslint.config({
-  // Set the react version
-  settings: { react: { version: '18.3' } },
-  plugins: {
-    // Add the react plugin
-    react,
-  },
-  rules: {
-    // other rules...
-    // Enable its recommended rules
-    ...react.configs.recommended.rules,
-    ...react.configs['jsx-runtime'].rules,
-  },
-})
+```bash
+yarn install
 ```
+
+### 3. Configure Environment Variables
+
+Create a `.env.development` file in the project root directory and add the following configuration:
+
+```env
+VITE_ETH_RPC_URL=<Your Ethereum RPC URL>
+VITE_ETH_BLOCKCHAIN_URL=<Blockchain Explorer URL>
+VITE_API_BASE_URL=<API Service Address>
+```
+
+### 4. Start Development Server
+
+```bash
+yarn dev
+```
+
+Visit `http://localhost:5173` to view the application.
+
+## Project Structure
+
+```
+src/
+  ├── components/     # React components
+  ├── contracts/      # Contract ABIs and configurations
+  ├── utils/          # Utility functions
+  ├── App.tsx         # Application entry component
+  └── main.tsx        # Application startup file
+```
+
+## Development Guide
+
+### Build Production Version
+
+```bash
+yarn build
+```
+
+### Preview Production Build
+
+```bash
+yarn preview
+```
+
+### Code Linting
+
+```bash
+yarn lint
+```
+
+## Main Features Usage Guide
+
+1. **Connect Wallet**
+   - Click the "Connect wallet" button
+   - Confirm connection in the wallet popup window
+
+2. **Token Exchange**
+   - Select input and output tokens
+   - Enter the amount of tokens to exchange
+   - First-time exchange requires token approval
+   - Click the "Swap" button to execute the exchange
+
+3. **View Transaction History**
+   - After completion, view transaction details in the blockchain explorer using the transaction hash
+
+## Tech Stack
+
+- React 19
+- TypeScript
+- Vite 6
+- ethers.js 6
+- Ant Design 5
+- ESLint
+
+## Important Notes
+
+- Ensure your wallet is installed and configured with the correct network
+- Verify sufficient token balance and Gas fees before trading
+- First-time use of new token pairs requires approval operation
+
