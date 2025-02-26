@@ -6,7 +6,7 @@ on:
 
 env:
   AWS_REGION: ap-southeast-1                   
-  ECR_REPOSITORY: openapi-frontend         
+  ECR_REPOSITORY: wusd-openapi-frontend         
 permissions:
   contents: read
 
