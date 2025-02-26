@@ -1,20 +1,24 @@
+FROM node:20-alpine AS builder
+WORKDIR /app
 
-FROM node:18 AS build
+# 设置环境变量
 ARG VITE_ETH_RPC_URL
-ARG VITE_ETH_BLOCKCHAIN_URL
 ARG VITE_API_BASE_URL
-WORKDIR /app
-COPY package.json yarn.lock ./
-RUN yarn install
+ARG VITE_ETH_BLOCKCHAIN_URL
+
+COPY package*.json ./
+RUN npm install --frozen-lockfile
 COPY . .
-RUN yarn build
+RUN npm run build
 
-
-FROM node:18 AS production
+FROM node:20-alpine
 WORKDIR /app
-COPY --from=build /app/dist /app/dist
-# RUN yarn global add vite@4.4.5
-COPY package.json yarn.lock ./
-EXPOSE 5173
-CMD ["yarn", "start"]
-# CMD ["vite", "preview", "--host", "0.0.0.0", "--port", "3000"]
+COPY package*.json ./
+COPY vite.config.ts ./
+RUN npm install --frozen-lockfile
+COPY --from=builder /app/dist ./dist  
+
+EXPOSE 8000
+CMD ["npm", "run", "start"]
+
+
