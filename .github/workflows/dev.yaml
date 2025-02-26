@@ -1,0 +1,46 @@
+name: Deploy to Amazon EKS
+
+on:
+  push:
+    branches: [ "dev" ]
+
+env:
+  AWS_REGION: ap-southeast-1                   
+  ECR_REPOSITORY: openapi-frontend         
+permissions:
+  contents: read
+
+jobs:
+  deploy:
+    name: RUN CI build image
+    runs-on: ubuntu-latest
+    environment: dev
+
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v4
+
+    - name: Configure AWS credentials
+      uses: aws-actions/configure-aws-credentials@v1
+      with:
+        aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+        aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+        aws-region: ${{ env.AWS_REGION }}
+
+    - name: Login to Amazon ECR
+      id: login-ecr
+      uses: aws-actions/amazon-ecr-login@v1
+      
+    - name: Set short sha
+      id: sha_short
+      run: echo "sha_short=$(git rev-parse --short HEAD)" >> $GITHUB_OUTPUT
+
+    - name: Build, tag, and push image to Amazon ECR
+      id: build-image
+      env:
+        ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
+        IMAGE_TAG: dev-${{ steps.sha_short.outputs.sha_short }}
+      run: |
+        docker build --build-arg VITE_ETH_RPC_URL=sepolia.infura.io --build-arg VITE_ETH_BLOCKCHAIN_URL=https://sepolia.etherscan.io --build-arg VITE_API_BASE_URL=http://openapi-dev.stabflow.io/api -t $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG .
+        docker push $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG
+        echo "image=$ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG" >> $GITHUB_OUTPUT
