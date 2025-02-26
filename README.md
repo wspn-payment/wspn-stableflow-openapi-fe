@@ -1,6 +1,6 @@
 # Stableflow OpenApi Web Demo
 
-This is a decentralized token exchange (Swap) application demo based on React and TypeScript. The application allows users to securely exchange between different tokens.
+This is a decentralized token exchange (Swap) application demo based on React and TypeScript. The application allows users to 1:1 exchange between WUSD, USDT, and USDC.
 
 ## Features
 
