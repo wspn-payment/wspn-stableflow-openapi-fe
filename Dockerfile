@@ -14,6 +14,7 @@ FROM node:18 AS production
 WORKDIR /app
 COPY --from=build /app/dist /app/dist
 # RUN yarn global add vite@4.4.5
+COPY package.json yarn.lock ./
 EXPOSE 5173
 CMD ["yarn", "start"]
 # CMD ["vite", "preview", "--host", "0.0.0.0", "--port", "3000"]
