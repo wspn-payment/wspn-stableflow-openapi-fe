@@ -13,7 +13,15 @@ export default defineConfig({
   },
   server: {  
     https: true,
-    cors: true 
+    cors: true,
+    proxy: {
+      '/api': {
+        target: "https://openapi-dev.swapflow.io",
+        changeOrigin: true,
+        secure: true, // 强制代理使用HTTPS
+        rewrite: (path) => path.replace(/^\/api/, '')
+      }
+    } 
   },
   preview: {
     host: true,
