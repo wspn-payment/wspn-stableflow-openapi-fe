@@ -69,7 +69,6 @@ const SwapForm = () => {
     updateTokenBalance(2);
   };
 
-  // 连接钱包
   const connectWallet = async () => {
     if (!window.ethereum) {
       messageApi.error("Please install wallet!");
@@ -89,12 +88,10 @@ const SwapForm = () => {
     }
   };
 
-  const switchNetWork = async (provider) => {
-    // 检查当前网络
+  const switchNetWork = async (provider) => { 
     const network = await provider.getNetwork();
-    console.log("Current network:", network.name);
-
-    // 定义 Sepolia 测试网络参数
+    console.log("Current network:", network.name); 
+     
     const SEPOLIA_CHAIN_ID = "0xaa36a7";
     const SEPOLIA_NETWORK_PARAMS = {
       chainId: SEPOLIA_CHAIN_ID,
@@ -106,9 +103,8 @@ const SwapForm = () => {
       },
       rpcUrls: [rpcUrl],
       blockExplorerUrls: [blockchainUrl],
-    };
-
-    // 检查并切换到网络
+    }; 
+     
     try {
       await window.ethereum.request({
         method: "wallet_switchEthereumChain",
@@ -132,9 +128,8 @@ const SwapForm = () => {
         return;
       }
     }
-  };
+  }; 
 
-  // 获取WUSD余额
   const updateTokenBalance = async (type: number) => {
     try {
       if (!provider || !signer || !abi.ERC20_ABI) return;
@@ -177,7 +172,6 @@ const SwapForm = () => {
     }
   };
 
-  // 执行授权
   const handleApprove = async () => {
     if (!provider || !signer) return;
 
@@ -230,7 +224,6 @@ const SwapForm = () => {
     }
   };
 
-  // 执行Swap
   const handleSwap = async () => {
     if (!signer || !provider) return;
     if (!verifySwapPair()) return;
@@ -282,7 +275,6 @@ const SwapForm = () => {
     }
   };
 
-  /// 检查交易对是否合法
   const verifySwapPair = () => {
     if (tokenIn.address == tokenOut.address) {
       messageApi.warning("Pair not supported. Select another");
@@ -302,7 +294,6 @@ const SwapForm = () => {
     return true;
   };
 
-  // 检查现有授权
   const checkAllowance = async () => {
     if (!provider || !signer) {
       return ethers.parseUnits("0", tokenIn.decimals);
@@ -324,7 +315,6 @@ const SwapForm = () => {
     }
   };
 
-  // 获取 Approve CallData
   const fetchApproveCallData = async () => {
     if (!provider || !signer) return;
     const owner = await signer.getAddress();
@@ -352,7 +342,6 @@ const SwapForm = () => {
     }
   };
 
-  /// 获取 Token Pair List
   const fetchTokenPirList = async () => {
     if (!provider || !signer) return;
     const response = await fetch(apibaseUrl + "/swap/tokenpair/list", {
@@ -369,7 +358,6 @@ const SwapForm = () => {
     }
   };
 
-  // 获取 Swap Payload
   const fetchSwapPayload = async () => {
     if (!provider || !signer) return;
     const owner = await signer.getAddress();
