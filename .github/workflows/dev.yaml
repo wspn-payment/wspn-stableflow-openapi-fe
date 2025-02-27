@@ -41,6 +41,6 @@ jobs:
         ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
         IMAGE_TAG: dev-${{ steps.sha_short.outputs.sha_short }}
       run: |
-        docker build --build-arg VITE_ETH_RPC_URL=sepolia.infura.io --build-arg VITE_ETH_BLOCKCHAIN_URL=https://sepolia.etherscan.io --build-arg VITE_API_BASE_URL=http://openapi-dev.stabflow.io/api -t $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG .
+        docker build --build-arg VITE_ETH_RPC_URL=sepolia.infura.io --build-arg VITE_ETH_BLOCKCHAIN_URL=https://sepolia.etherscan.io --build-arg VITE_API_BASE_URL=https://openapi-dev.swapflow.io/api -t $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG .
         docker push $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG
         echo "image=$ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG" >> $GITHUB_OUTPUT
