@@ -18,7 +18,7 @@ COPY vite.config.ts ./
 RUN npm install --frozen-lockfile
 COPY --from=builder /app/dist ./dist  
 
-EXPOSE 8000
+EXPOSE 5173
 CMD ["npm", "run", "start"]
 
 
