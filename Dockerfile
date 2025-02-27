@@ -16,7 +16,7 @@ WORKDIR /usr/share/nginx/html
 RUN rm -rf ./*
 COPY --from=builder /app/dist . 
 
-EXPOSE 5713
+EXPOSE 5173
 CMD ["npm", "run", "start"]
 
 
