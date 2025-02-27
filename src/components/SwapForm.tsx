@@ -170,10 +170,10 @@ const SwapForm = () => {
         setTokenOutBalance(ethers.formatUnits(outbalance, tokenOut.decimals));
       }
     } catch (balanceError) {
-      console.error("Failed to get balance:", balanceError);
       setTokenInBalance("0");
       setTokenOutBalance("0");
-      messageApi.error(`Failed to get balance：${balanceError.message}`);
+      messageApi.error(`Failed to get balance`);
+      console.error("Failed to get balance:", balanceError);
     }
   };
 
