@@ -11,16 +11,26 @@ export default defineConfig({
       '@': path.resolve(__dirname, './src')
     }
   },
+  build: {
+    assetsDir: '',
+    rollupOptions: {
+      output: {
+        assetFileNames: 'assets/[ext]/[name]-[hash][extname]',
+        chunkFileNames: 'assets/js/[name]-[hash].js',
+        entryFileNames: 'assets/js/[name]-[hash].js'
+      }
+    }
+  },
   server: {  
     cors: true,
-    proxy: {
-      '/api': {
-        target: "https://openapi-dev.swapflow.io",
-        changeOrigin: true,
-        secure: true, // 强制代理使用HTTPS
-        rewrite: (path) => path.replace(/^\/api/, '')
-      }
-    } 
+    // proxy: {
+    //   '/api': {
+    //     target: "https://openapi-dev.swapflow.io/api",
+    //     changeOrigin: true,
+    //     secure: true,
+    //     rewrite: (path) => path.replace(/^\/api/, '')
+    //   }
+    // }
   },
   preview: {  
     cors: true, 
