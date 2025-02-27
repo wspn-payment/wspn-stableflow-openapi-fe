@@ -13,10 +13,11 @@ RUN npm run build
 
 FROM node:20-alpine
 WORKDIR /app
-COPY package*.json ./
+COPY package*.json ./ 
 COPY vite.config.ts ./
+COPY --from=builder /app/dist/ /app/dist/
+COPY --from=builder /app/public/ /app/public/
 RUN npm install --frozen-lockfile
-COPY --from=builder /app/dist ./dist  
 
 EXPOSE 5173
 CMD ["npm", "run", "start"]

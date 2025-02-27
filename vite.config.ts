@@ -10,6 +10,10 @@ export default defineConfig({
       '@': path.resolve(__dirname, './src')
     }
   },
+  server: {
+    port: 8000,
+    open: true
+  },
   preview: {
     allowedHosts: ['openapi-dev.swapflow.io']
   }
