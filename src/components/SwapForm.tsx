@@ -407,14 +407,14 @@ const SwapForm = () => {
       {contextHolder}
       <Card
         style={{
-          maxWidth: "80vw",
+          width: "100%",
           margin: "0 auto",
           background: "#141414",
           borderRadius: 16,
           border: "1px solid #303030",
         }}
       >
-        <Space direction="vertical" size="middle" style={{ width: "32vw" }}>
+        <Space direction="vertical" size="middle" style={{ width: "100%" }}>
           <div style={{ textAlign: "center", marginTop: 30, width: "100%" }}>
             <Title level={2} style={{ color: "#fff", marginBottom: 8 }}>
               {tokenIn.symbol} <SwapOutlined /> {tokenOut.symbol}
