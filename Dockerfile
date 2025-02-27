@@ -17,6 +17,6 @@ RUN rm -rf ./*
 COPY --from=builder /app/dist . 
 
 EXPOSE 5713
-CMD ["nginx", "-g", "daemon off;"]
+CMD ["npm", "run", "start"]
 
 
