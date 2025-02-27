@@ -14,7 +14,7 @@ export default defineConfig({
   build: {
     assetsDir: 'assets',
     modulePreload: {
-      polyfill: true
+      polyfill: false
     },
     rollupOptions: {
       output: {
@@ -30,15 +30,7 @@ export default defineConfig({
     }
   },
   server: {  
-    cors: true,
-    proxy: {
-      '/api': {
-        target: "https://openapi-dev.swapflow.io/api",
-        changeOrigin: true,
-        secure: true,
-        rewrite: (path) => path.replace(/^\/api/, '')
-      }
-    }
+    cors: true 
   },
   preview: {  
     cors: true, 
