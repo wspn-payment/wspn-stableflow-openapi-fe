@@ -6,23 +6,17 @@ ARG VITE_ETH_RPC_URL
 ARG VITE_API_BASE_URL
 ARG VITE_ETH_BLOCKCHAIN_URL
 
-ENV VITE_ETH_RPC_URL=${VITE_ETH_RPC_URL}
-ENV VITE_API_BASE_URL=${VITE_API_BASE_URL}
-ENV VITE_ETH_BLOCKCHAIN_URL=${VITE_ETH_BLOCKCHAIN_URL}
-
 COPY package*.json ./
 RUN npm install --frozen-lockfile
 COPY . .
 RUN npm run build
 
-FROM node:20-alpine
-WORKDIR /app
-COPY package*.json ./ 
-COPY vite.config.ts ./
-COPY --from=builder /app/dist /app/dist
-RUN npm install --frozen-lockfile
+FROM nginx:alpine
+WORKDIR /usr/share/nginx/html
+RUN rm -rf ./*
+COPY --from=builder /app/dist . 
 
-EXPOSE 5173
-CMD ["npm", "run", "start"]
+EXPOSE 80
+CMD ["nginx", "-g", "daemon off;"]
 
 
