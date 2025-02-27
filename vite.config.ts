@@ -10,34 +10,5 @@ export default defineConfig({
     alias: {
       "@": path.resolve(__dirname, "./src"),
     },
-  },
-  build: {
-    rollupOptions: {
-      output: {
-        assetFileNames: "assets/[ext]/[name]-[hash][extname]",
-        chunkFileNames: "assets/js/[name]-[hash].js",
-        entryFileNames: "assets/js/[name]-[hash].js",
-        manualChunks(id) {
-          if (id.includes("node_modules")) {
-            return "vendor";
-          }
-        },
-      },
-    },
-  },
-  server: {
-    cors: true,
-    proxy: {
-      "/api": {
-        target: "https://openapi-dev.swapflow.io",
-        changeOrigin: true,
-        secure: true,
-        rewrite: (path) => path.replace(/^\/api/, "/api"),
-      },
-    },
-  },
-  preview: {
-    cors: true,
-    allowedHosts: ["openapi-dev.swapflow.io"],
-  },
+  }  
 });
