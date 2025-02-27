@@ -5,7 +5,7 @@ import path from 'path'
 // https://vite.dev/config/
 export default defineConfig({
   plugins: [react()],
-  base: './',
+  base: '/dist/',
   resolve: {
     alias: {
       '@': path.resolve(__dirname, './src')
@@ -16,14 +16,7 @@ export default defineConfig({
     port: 5173,
     strictPort: true,
     https: true,
-    cors: true,
-    proxy: {
-      '/api': {
-        target: process.env.VITE_API_BASE_URL,
-        changeOrigin: true,
-        rewrite: (path) => path.replace(/^\/api/, '')
-      }
-    }
+    cors: true 
   },
   preview: {
     host: true,
