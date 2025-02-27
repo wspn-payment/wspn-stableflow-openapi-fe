@@ -11,11 +11,26 @@ export default defineConfig({
       '@': path.resolve(__dirname, './src')
     }
   },
-  server: {
-    port: 8000,
-    open: true
+  server: { 
+    host: true,
+    port: 5173,
+    strictPort: true,
+    https: true,
+    cors: true,
+    proxy: {
+      '/api': {
+        target: process.env.VITE_API_BASE_URL,
+        changeOrigin: true,
+        rewrite: (path) => path.replace(/^\/api/, '')
+      }
+    }
   },
   preview: {
+    host: true,
+    port: 5173,
+    strictPort: true,
+    https: true,
+    cors: true,
     allowedHosts: ['openapi-dev.swapflow.io']
   }
 })
