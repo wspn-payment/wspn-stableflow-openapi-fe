@@ -15,8 +15,7 @@ FROM node:20-alpine
 WORKDIR /app
 COPY package*.json ./ 
 COPY vite.config.ts ./
-COPY --from=builder /app/dist/ /app/dist/
-COPY --from=builder /app/public/ /app/public/
+COPY --from=builder /app/dist /app/dist
 RUN npm install --frozen-lockfile
 
 EXPOSE 5173
