@@ -5,32 +5,40 @@ import path from 'path'
 // https://vite.dev/config/
 export default defineConfig({
   plugins: [react()],
-  base: './',
+  base: '/dist/',
   resolve: {
     alias: {
       '@': path.resolve(__dirname, './src')
     }
   },
   build: {
-    assetsDir: '',
+    assetsDir: 'assets',
+    modulePreload: {
+      polyfill: true
+    },
     rollupOptions: {
       output: {
         assetFileNames: 'assets/[ext]/[name]-[hash][extname]',
         chunkFileNames: 'assets/js/[name]-[hash].js',
-        entryFileNames: 'assets/js/[name]-[hash].js'
+        entryFileNames: 'assets/js/[name]-[hash].js',
+        manualChunks(id) {
+          if (id.includes('node_modules')) {
+            return 'vendor'
+          }
+        }
       }
     }
   },
   server: {  
     cors: true,
-    // proxy: {
-    //   '/api': {
-    //     target: "https://openapi-dev.swapflow.io/api",
-    //     changeOrigin: true,
-    //     secure: true,
-    //     rewrite: (path) => path.replace(/^\/api/, '')
-    //   }
-    // }
+    proxy: {
+      '/api': {
+        target: "https://openapi-dev.swapflow.io/api",
+        changeOrigin: true,
+        secure: true,
+        rewrite: (path) => path.replace(/^\/api/, '')
+      }
+    }
   },
   preview: {  
     cors: true, 
