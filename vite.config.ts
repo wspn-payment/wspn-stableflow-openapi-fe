@@ -5,14 +5,13 @@ import path from 'path'
 // https://vite.dev/config/
 export default defineConfig({
   plugins: [react()],
-  base: '/',
+  base: './',
   resolve: {
     alias: {
       '@': path.resolve(__dirname, './src')
     }
   },
   server: {  
-    https: true,
     cors: true,
     proxy: {
       '/api': {
@@ -23,12 +22,8 @@ export default defineConfig({
       }
     } 
   },
-  preview: {
-    host: true,
-    port: 5173,
-    strictPort: true,
-    https: true,
-    cors: true,
+  preview: {  
+    cors: true, 
     allowedHosts: ['openapi-dev.swapflow.io']
   }
 })
