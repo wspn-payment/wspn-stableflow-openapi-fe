@@ -1,7 +1,7 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { BrowserProvider, ethers } from "ethers";
-import { abi, tokenList } from "../contracts/index";
-import { formatTxHash } from "../utils/format";
+import { abi, tokenList } from "@/contracts/index";
+import { formatTxHash } from "@/utils/format";
 import {
   Button,
   Checkbox,
@@ -14,48 +14,50 @@ import {
   Select,
 } from "antd";
 import { SwapOutlined } from "@ant-design/icons";
+import { useWallet } from "@/hooks/useWallet";
+import { useLoading } from "@/hooks/useLoading";
+import {
+  fetchTokenPairList,
+  fetchApproveCallData,
+  fetchSwapPayload,
+} from "@/api/swap";
+import useTokenManagement from "@/hooks/useTokenManagement";
+import { getTokenBalance, NETWORKS } from "@/hooks/useNetwork";
 
 const { Title, Text } = Typography;
 
 const SwapForm = () => {
   const [messageApi, contextHolder] = message.useMessage();
-  const [provider, setProvider] = useState<BrowserProvider | null>(null);
-  const [signer, setSigner] = useState<ethers.Signer | null>(null);
   const [tokenInBalance, setTokenInBalance] = useState<string>("0");
   const [tokenOutBalance, setTokenOutBalance] = useState<string>("0");
   const [amountIn, setAmountIn] = useState("1");
   const [txHash, setTxHash] = useState("");
-  const [loading, setLoading] = useState(false);
-  const [loadingSwap, setLoadingSwap] = useState(false);
-  const [tokens, setTokens] = useState(tokenList);
   const [useDestinationAddress, setUseDestinationAddress] = useState(false);
   const [destinationAddress, setDestinationAddress] = useState("");
-  const [tokenIn, setTokenIn] = useState(tokens[0]);
-  const [tokenOut, setTokenOut] = useState(tokens[1]);
   const [swapRout, setSwapRout] = useState("");
   const [explorerUrl, setExplorerUrl] = useState("");
-  const rpcUrl = import.meta.env.VITE_ETH_RPC_URL;
-  const blockchainUrl = import.meta.env.VITE_ETH_BLOCKCHAIN_URL;
-  const apibaseUrl = import.meta.env.VITE_API_BASE_URL;
+  const { provider, signer, connect, userAddress } = useWallet();
+  const [token, { setInToken, setOutToken, updateTokenList }] =
+    useTokenManagement(tokenList);
+  const [loading, { setApproveLoading, setSwapLoading }] = useLoading({
+    approve: false,
+    swap: false,
+  });
 
   useEffect(() => {
-    updateTokenBalance(1);
-  }, [tokenIn]);
-
-  useEffect(() => {
-    updateTokenBalance(2);
-  }, [tokenOut]);
+    updateTokenBalance();
+  }, [token.in, token.out]);
 
   useEffect(() => {
     if (!provider || !signer) return;
-    reloadBalance();
     const fetchTokenData = async () => {
       try {
-        const data = await fetchTokenPirList();
+        const data = await fetchTokenPairList();
         if (data && data.swap_route) {
           setSwapRout(data.swap_route);
           setExplorerUrl(data.explorer_url);
-          setTokens(data.tokenpairs);
+          updateTokenList(data.tokenpairs);
+          updateTokenBalance();
         }
       } catch (error) {
         message.error("Request tokenpair list failed!");
@@ -64,111 +66,69 @@ const SwapForm = () => {
     fetchTokenData();
   }, [signer]);
 
-  const reloadBalance = () => {
-    updateTokenBalance(1);
-    updateTokenBalance(2);
-  };
-
   const connectWallet = async () => {
-    if (!window.ethereum) {
-      messageApi.error("Please install wallet!");
-      return;
-    }
-
     try {
-      const provider = new BrowserProvider(window.ethereum);
-      await switchNetWork(provider);
-      const signer = await provider.getSigner();
-      setProvider(provider);
-      setSigner(signer);
+      await connect();
+      setupNetworkListener();
     } catch (error) {
-      messageApi.error(`Failed to connect wallet: ${error.message}`);
-      setProvider(null);
-      setSigner(null);
+      handleError(error);
     }
   };
 
-  const switchNetWork = async (provider) => { 
-    const network = await provider.getNetwork();
-    console.log("Current network:", network.name); 
-     
-    const SEPOLIA_CHAIN_ID = "0xaa36a7";
-    const SEPOLIA_NETWORK_PARAMS = {
-      chainId: SEPOLIA_CHAIN_ID,
-      chainName: "ETH Network",
-      nativeCurrency: {
-        name: "ETH",
-        symbol: "ETH",
-        decimals: tokenIn.decimals,
-      },
-      rpcUrls: [rpcUrl],
-      blockExplorerUrls: [blockchainUrl],
-    }; 
-     
-    try {
-      await window.ethereum.request({
-        method: "wallet_switchEthereumChain",
-        params: [{ chainId: SEPOLIA_CHAIN_ID }],
-      });
-    } catch (switchError) {
-      if (switchError.code === 4902) {
-        try {
-          await window.ethereum.request({
-            method: "wallet_addEthereumChain",
-            params: [SEPOLIA_NETWORK_PARAMS],
-          });
-        } catch (addError) {
-          console.error("Failed to add network:", addError);
-          messageApi.error("Failed to add network");
-          return;
-        }
-      } else {
-        console.error("Failed to switch network:", switchError);
-        messageApi.error(`Failed to switch network：${switchError.message}`);
-        return;
+  const setupNetworkListener = () => {
+    window.ethereum.on("chainChanged", (chainId) => {
+      if (chainId !== NETWORKS.SEPOLIA.HEX_CHAIN_ID) {
+        messageApi.warning("Network changed, reconnecting...");
+        connectWallet().then(updateTokenBalance);
       }
-    }
-  }; 
+    });
+  };
 
-  const updateTokenBalance = async (type: number) => {
+  const handleError = (error: Error) => {
+    console.error(error);
+    const msg = error.message.includes("ACTION_REJECTED")
+      ? "Transaction cancelled"
+      : error.message;
+    messageApi.error(msg);
+  };
+
+  const updateTokenBalance = async () => {
     try {
-      if (!provider || !signer || !abi.ERC20_ABI) return;
+      if (!provider || !signer) return;
+      const [balanceIn, balanceOut] = await fetchAllBalances();
+      setTokenInBalance(balanceIn || "0");
+      setTokenOutBalance(balanceOut || "0");
       verifySwapPair();
-      const userAddress = await signer.getAddress();
-      if (!userAddress) {
-        throw new Error("Unable to get user address");
-      }
+    } catch (error) {
+      handleBalanceError(error);
+    }
+  };
 
-      if (type == 1) {
-        const tokenInContract = new ethers.Contract(
-          tokenIn.address,
-          abi.ERC20_ABI,
-          provider
-        );
-        const inbalance = await tokenInContract.balanceOf(userAddress);
-        if (!inbalance) {
-          setTokenInBalance("0");
-          return;
-        }
-        setTokenInBalance(ethers.formatUnits(inbalance, tokenIn.decimals));
-      } else if (type == 2) {
-        const tokenOutContract = new ethers.Contract(
-          tokenOut.address,
-          abi.ERC20_ABI,
-          provider
-        );
-        const outbalance = await tokenOutContract.balanceOf(userAddress);
-        if (!outbalance) {
-          setTokenOutBalance("0");
-          return;
-        }
-        setTokenOutBalance(ethers.formatUnits(outbalance, tokenOut.decimals));
-      }
-    } catch (balanceError) {
-      setTokenInBalance("0");
-      setTokenOutBalance("0");
-      messageApi.error(`Failed to get balance`);
-      console.error("Failed to get balance:", balanceError);
+  const fetchAllBalances = async () => {
+    const requests = [
+      { address: token.in.address, decimals: token.in.decimals },
+      { address: token.out.address, decimals: token.out.decimals },
+    ].map(async ({ address, decimals }) => {
+      return getTokenBalance(
+        address,
+        decimals,
+        userAddress ?? "",
+        provider as BrowserProvider
+      );
+    });
+
+    return Promise.all(requests);
+  };
+
+  const handleBalanceError = (error) => {
+    setTokenInBalance("0");
+    setTokenOutBalance("0");
+    console.error("Balance Error:", error);
+
+    if (error.message.includes("Network")) {
+      messageApi.error("Please connect to Sepolia network");
+    } else {
+      messageApi.error("Failed to fetch balances");
     }
   };
 
@@ -180,15 +140,21 @@ const SwapForm = () => {
         messageApi.warning("Approve amount cannot be 0");
         return;
       }
-      const allowance = await checkAllowance();
-      const requiredAmount = ethers.parseUnits(amountIn, tokenIn.decimals);
-      if (allowance >= requiredAmount) {
+
+      const requiredAmount = ethers.parseUnits(amountIn, token.in.decimals);
+      const isApproved = await checkAllowance(requiredAmount);
+      if (isApproved) {
         messageApi.warning("Sufficient approved amount already exists");
         return;
       }
 
-      setLoading(true);
-      const calldata = await fetchApproveCallData();
+      setApproveLoading(true);
+      const calldata = await fetchApproveCallData({
+        tokenAddress: token.in.address,
+        spender: swapRout,
+        amount: amountIn,
+        owner: userAddress ?? "",
+      });
       if (
         !calldata ||
         !calldata.to ||
@@ -213,14 +179,9 @@ const SwapForm = () => {
       setTxHash(tx.hash);
       messageApi.success("Approve successful!");
     } catch (error) {
-      console.error("Approve failed:", error);
-      if (error.code === "ACTION_REJECTED") {
-        messageApi.error("Transaction was cancelled by user");
-      } else {
-        messageApi.error(`Approve failed: ${error.message}`);
-      }
+      handleError(error);
     } finally {
-      setLoading(false);
+      setApproveLoading(false);
     }
   };
 
@@ -231,18 +192,14 @@ const SwapForm = () => {
       messageApi.warning("Swap amount cannot be 0");
       return;
     }
-    const allowance = await checkAllowance();
-    const requiredAmount = ethers.parseUnits(amountIn, tokenIn.decimals);
+    const requiredAmount = ethers.parseUnits(amountIn, token.in.decimals);
     const balanceAmount = ethers.parseUnits(
       tokenInBalance.toString(),
-      tokenIn.decimals
+      token.in.decimals
     );
-
-    if (allowance < requiredAmount) {
-      const allowanced = ethers.formatUnits(allowance, tokenIn.decimals);
-      messageApi.warning(
-        `Insufficient approve amount, current approved amount: ${allowanced}, Swap limit: ${amountIn}`
-      );
+    const isApproved = await checkAllowance(requiredAmount);
+    if (!isApproved) {
+      messageApi.warning(`Insufficient approve amount!`);
       return;
     }
 
@@ -252,8 +209,16 @@ const SwapForm = () => {
     }
 
     try {
-      setLoadingSwap(true);
-      const payload = await fetchSwapPayload();
+      setSwapLoading(true);
+      const payload = await fetchSwapPayload({
+        userAddress: userAddress ?? "",
+        tokenIn: token.in.address,
+        tokenOut: token.out.address,
+        swapAmount: amountIn,
+        swapContract: swapRout,
+        useDestinationAddress: useDestinationAddress,
+        destinationAddress: useDestinationAddress ? destinationAddress : "",
+      });
       if (!payload || !payload.to || !payload.data || !payload.value) {
         messageApi.error("Failed to get SwapPayload data");
         return;
@@ -261,32 +226,27 @@ const SwapForm = () => {
       const tx = await signer.sendTransaction(payload);
       await tx.wait();
       setTxHash(tx.hash);
-      reloadBalance();
+      updateTokenBalance();
       messageApi.success("Swap successful!");
     } catch (error) {
-      console.error(`Swap failed:${error}`);
-      if (error.code === "ACTION_REJECTED") {
-        messageApi.error("Transaction was cancelled by user");
-      } else {
-        messageApi.error(`Swap failed: ${error.message}`);
-      }
+      handleError(error);
     } finally {
-      setLoadingSwap(false);
+      setSwapLoading(false);
     }
   };
 
   const verifySwapPair = () => {
-    if (tokenIn.address == tokenOut.address) {
+    if (token.in.address == token.out.address) {
       messageApi.warning("Pair not supported. Select another");
       return false;
     }
 
-    if (tokenIn.symbol == "USDT" && tokenOut.symbol == "USDC") {
+    if (token.in.symbol == "USDT" && token.out.symbol == "USDC") {
       messageApi.warning("Pair not supported. Select another");
       return false;
     }
 
-    if (tokenIn.symbol == "USDC" && tokenOut.symbol == "USDT") {
+    if (token.in.symbol == "USDC" && token.out.symbol == "USDT") {
       messageApi.warning("Pair not supported. Select another");
       return false;
     }
@@ -294,96 +254,32 @@ const SwapForm = () => {
     return true;
   };
 
-  const checkAllowance = async () => {
-    if (!provider || !signer) {
-      return ethers.parseUnits("0", tokenIn.decimals);
-    }
+  const checkAllowance = useCallback(
+    async (requiredAmount: bigint) => {
+      if (!provider || !signer || !swapRout) {
+        console.warn("Missing essential dependencies");
+        return false;
+      }
+      try {
+        const owner = await signer.getAddress();
+        const tokenContract = new ethers.Contract(
+          token.in.address,
+          abi.ERC20_ABI,
+          provider
+        );
+        const allowance = await tokenContract.allowance(owner, swapRout);
+        console.debug(
+          `Current allowance: ${allowance.toString()}, Required: ${requiredAmount.toString()}`
+        );
 
-    try {
-      const owner = await signer.getAddress();
-      const tokenContract = new ethers.Contract(
-        tokenIn.address,
-        abi.ERC20_ABI,
-        provider
-      );
-      const allowance = await tokenContract.allowance(owner, swapRout);
-      return allowance;
-    } catch (error) {
-      console.error("Failed to check approve amount:", error);
-      messageApi.error("Failed to check approve amount");
-      return ethers.parseUnits("0", tokenIn.decimals);
-    }
-  };
-
-  const fetchApproveCallData = async () => {
-    if (!provider || !signer) return;
-    const owner = await signer.getAddress();
-    if (!swapRout) {
-      messageApi.error("Failed to fetch swapRout");
-      return;
-    }
-
-    const response = await fetch(apibaseUrl + "/swap/generate/approve", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        tokenAddress: tokenIn.address,
-        spender: swapRout,
-        amount: amountIn,
-        owner: owner,
-      }),
-    });
-    const responseJson = await response.json();
-    if (responseJson?.code == 200) {
-      return responseJson?.data;
-    } else {
-      messageApi.error(responseJson?.message);
-      return null;
-    }
-  };
-
-  const fetchTokenPirList = async () => {
-    if (!provider || !signer) return;
-    const response = await fetch(apibaseUrl + "/swap/tokenpair/list", {
-      method: "GET",
-      headers: { "Content-Type": "application/json" },
-    });
-
-    const responseJson = await response.json();
-    if (responseJson?.code == 200) {
-      return responseJson?.data;
-    } else {
-      messageApi.error(responseJson?.message);
-      return null;
-    }
-  };
-
-  const fetchSwapPayload = async () => {
-    if (!provider || !signer) return;
-    const owner = await signer.getAddress();
-    const response = await fetch(apibaseUrl + "/swap/generate/payload", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        userAddress: owner,
-        tokenIn: tokenIn.address,
-        tokenOut: tokenOut.address,
-        swapAmount: amountIn,
-        swapContract: swapRout,
-        useDestinationAddress: useDestinationAddress,
-        destinationAddress: useDestinationAddress ? destinationAddress : "",
-      }),
-    });
-
-    const responseJson = await response.json();
-    if (responseJson?.code == 200) {
-      return responseJson?.data;
-    } else {
-      messageApi.error(responseJson?.message);
-      return null;
-    }
-  };
-
+        return allowance >= requiredAmount;
+      } catch (error) {
+        handleError(error);
+        return false;
+      }
+    },
+    [provider, signer, token.in.address, swapRout]
+  );
   return (
     <div
       style={{
@@ -405,7 +301,7 @@ const SwapForm = () => {
         <Space direction="vertical" size="middle" style={{ width: "100%" }}>
           <div style={{ textAlign: "center", marginTop: 30, width: "100%" }}>
             <Title level={2} style={{ color: "#fff", marginBottom: 8 }}>
-              {tokenIn.symbol} <SwapOutlined /> {tokenOut.symbol}
+              {token.in.symbol} <SwapOutlined /> {token.out.symbol}
             </Title>
             <Text style={{ color: "#13c2c2" }}>
               Hold WUSD in your own wallet to get{" "}
@@ -448,7 +344,7 @@ const SwapForm = () => {
                   >
                     <Text style={{ color: "#fff" }}>From</Text>
                     <Text style={{ color: "#fff" }}>
-                      Balance: {tokenInBalance + " " + tokenIn.symbol}
+                      Balance: {tokenInBalance + " " + token.in.symbol}
                     </Text>
                   </div>
                   <div
@@ -459,7 +355,7 @@ const SwapForm = () => {
                       value={amountIn}
                       onChange={(e) => setAmountIn(e.target.value)}
                       placeholder="0"
-                      disabled={loading || loadingSwap}
+                      disabled={loading.approve || loading.swap}
                       style={{
                         background: "#fff",
                         border: "none",
@@ -468,11 +364,13 @@ const SwapForm = () => {
                       }}
                     />
                     <Select
-                      value={tokenIn.symbol}
+                      value={token.in.symbol}
                       onChange={(value) => {
-                        const newToken = tokens.find((t) => t.symbol === value);
+                        const newToken = token.list.find(
+                          (t) => t.symbol === value
+                        );
                         if (newToken) {
-                          setTokenIn(newToken);
+                          setInToken(newToken);
                         }
                       }}
                       style={{
@@ -484,7 +382,7 @@ const SwapForm = () => {
                         background: "#2f2f2f",
                       }}
                     >
-                      {tokens.map((token) => (
+                      {token.list.map((token) => (
                         <Select.Option
                           key={token.symbol}
                           value={token.symbol}
@@ -544,7 +442,7 @@ const SwapForm = () => {
                   >
                     <Text style={{ color: "#fff" }}>To</Text>
                     <Text style={{ color: "#fff" }}>
-                      Balance: {tokenOutBalance + " " + tokenOut.symbol}
+                      Balance: {tokenOutBalance + " " + token.out.symbol}
                     </Text>
                   </div>
                   <div
@@ -563,11 +461,13 @@ const SwapForm = () => {
                       }}
                     />
                     <Select
-                      value={tokenOut.symbol}
+                      value={token.out.symbol}
                       onChange={(value) => {
-                        const newToken = tokens.find((t) => t.symbol === value);
+                        const newToken = token.list.find(
+                          (t) => t.symbol === value
+                        );
                         if (newToken) {
-                          setTokenOut(newToken);
+                          setOutToken(newToken);
                         }
                       }}
                       style={{
@@ -579,7 +479,7 @@ const SwapForm = () => {
                         background: "#2f2f2f",
                       }}
                     >
-                      {tokens.map((token) => (
+                      {token.list.map((token) => (
                         <Select.Option
                           key={token.symbol}
                           value={token.symbol}
@@ -656,31 +556,31 @@ const SwapForm = () => {
                   size="large"
                   block
                   onClick={handleApprove}
-                  disabled={loading || loadingSwap}
+                  disabled={loading.approve || loading.swap}
                   style={{
                     height: 48,
                     background: "#13c2c2",
                     borderColor: "#13c2c2",
                   }}
                 >
-                  {loading ? <Spin /> : "Approve " + tokenIn.symbol}
+                  {loading.approve ? <Spin /> : "Approve " + token.in.symbol}
                 </Button>
                 <Button
                   type="primary"
                   size="large"
                   block
                   onClick={handleSwap}
-                  disabled={loading || loadingSwap}
+                  disabled={loading.approve || loading.swap}
                   style={{
                     height: 48,
                     background: "#13c2c2",
                     borderColor: "#13c2c2",
                   }}
                 >
-                  {loadingSwap ? (
+                  {loading.swap ? (
                     <Spin />
                   ) : (
-                    "Swap " + tokenIn.symbol + "→" + tokenOut.symbol
+                    "Swap " + token.in.symbol + "→" + token.out.symbol
                   )}
                 </Button>
               </Space>

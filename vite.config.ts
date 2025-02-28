@@ -1,3 +1,10 @@
+/*
+ * @Author: 李志刚
+ * @Date: 2025-02-28 00:32:50
+ * @LastEditors: 李志刚
+ * @LastEditTime: 2025-02-28 17:15:46
+ * @Description:
+ */
 import { defineConfig } from "vite";
 import react from "@vitejs/plugin-react";
 import path from "path";
@@ -12,7 +19,8 @@ export default defineConfig({
     },
   },
   server: {
-    host: true
+    open: true,
+    host: true,
   },
   preview: {
     host: true,
