@@ -351,7 +351,7 @@ const SwapView = () => {
                       }}
                       style={{
                         width: 160,
-                        height: 45,
+                        height: 46,
                         background: "#2f2f2f",
                       }}
                       dropdownStyle={{
@@ -466,7 +466,7 @@ const SwapView = () => {
                       }}
                       style={{
                         width: 160,
-                        height: 45,
+                        height: 46,
                         background: "#2f2f2f",
                       }}
                       dropdownStyle={{

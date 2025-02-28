@@ -7,21 +7,23 @@
   align-items: center;
   justify-content: center;
   background: #ffffff;
-  border-radius: 50%;  
+  border-radius: 50%;
   position: absolute;
   left: 50%;
-  transform: translateX(-50%);
-  transform-origin: center;
   margin-top: -24px;
   z-index: 2;
-  border: 2px solid #141414;
-  box-sizing: border-box;  
-  transition: all 0.3s ease;
+  box-sizing: border-box;
   padding: 0;
 }
 
+.swapButton:active,
+.swapButton:focus,
 .swapButton:hover {
-  background: #f0f0f0;
-  transform-origin: center; 
-  transform: translateX(-50%) scale(1.1); 
+  background: #ffffff !important;
+  box-shadow: none !important;
+  border-color: transparent !important;
+}
+
+.swapButton::after {
+  display: none !important;
 }
