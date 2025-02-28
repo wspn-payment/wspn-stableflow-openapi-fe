@@ -1,3 +1,5 @@
+import { message } from "antd";
+
 type Interceptor = {
   request?: (config: RequestInit) => RequestInit;
   response?: (response: Response) => Promise<any>;
@@ -12,6 +14,7 @@ class HttpRequest {
     this.timeout = config.timeout || 10000;
     this.interceptors = { request: undefined, response: undefined };
   }
+
   use(interceptors: Interceptor) {
     this.interceptors = { ...this.interceptors, ...interceptors };
   }
@@ -33,12 +36,15 @@ class HttpRequest {
       let resdata = await response.json();
       if (resdata.code === 200) {
         resdata = resdata.data;
+      } else {
+        message.error(resdata.message);
       }
-      clearTimeout(timer);
       return resdata;
     } catch (error) {
-      clearTimeout(timer);
+      message.error((error as Error).message || "Request failed");
       throw error;
+    } finally {
+      clearTimeout(timer);
     }
   }
 

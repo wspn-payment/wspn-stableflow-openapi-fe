@@ -12,7 +12,7 @@
 /* PC adaptation (≥768px) */
 @media screen and (min-width: 768px) {
   #root {
-    max-width: 700px; /* Larger PC container */
+    max-width: 680px; /* Larger PC container */
     padding: 2rem;
   }
 }

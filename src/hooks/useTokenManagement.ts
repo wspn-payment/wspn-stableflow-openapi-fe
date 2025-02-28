@@ -36,22 +36,18 @@ const useTokenManagement = (
 
   const setInToken = useCallback((token: Token) => {
     setTokenState((prev) => {
-      const shouldSwap = token.symbol === prev.out.symbol;
       return {
         ...prev,
         in: token,
-        out: shouldSwap ? prev.in : prev.out,
       };
     });
   }, []);
 
   const setOutToken = useCallback((token: Token) => {
     setTokenState((prev) => {
-      const shouldSwap = token.symbol === prev.in.symbol;
       return {
         ...prev,
         out: token,
-        in: shouldSwap ? prev.out : prev.in,
       };
     });
   }, []);

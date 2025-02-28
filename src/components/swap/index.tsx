@@ -23,10 +23,11 @@ import {
 } from "@/api/swap";
 import useTokenManagement from "@/hooks/useTokenManagement";
 import { getTokenBalance, NETWORKS } from "@/hooks/useNetwork";
+import styles from "./index.module.css";
 
 const { Title, Text } = Typography;
 
-const SwapForm = () => {
+const SwapView = () => {
   const [messageApi, contextHolder] = message.useMessage();
   const [tokenInBalance, setTokenInBalance] = useState<string>("0");
   const [tokenOutBalance, setTokenOutBalance] = useState<string>("0");
@@ -37,7 +38,7 @@ const SwapForm = () => {
   const [swapRout, setSwapRout] = useState("");
   const [explorerUrl, setExplorerUrl] = useState("");
   const { provider, signer, connect, userAddress } = useWallet();
-  const [token, { setInToken, setOutToken, updateTokenList }] =
+  const [tokens, { setInToken, setOutToken, updateTokenList }] =
     useTokenManagement(tokenList);
   const [loading, { setApproveLoading, setSwapLoading }] = useLoading({
     approve: false,
@@ -46,10 +47,11 @@ const SwapForm = () => {
 
   useEffect(() => {
     updateTokenBalance();
-  }, [token.in, token.out]);
+  }, [tokens.in, tokens.out]);
 
   useEffect(() => {
     if (!provider || !signer) return;
+    updateTokenBalance();
     const fetchTokenData = async () => {
       try {
         const data = await fetchTokenPairList();
@@ -57,7 +59,6 @@ const SwapForm = () => {
           setSwapRout(data.swap_route);
           setExplorerUrl(data.explorer_url);
           updateTokenList(data.tokenpairs);
-          updateTokenBalance();
         }
       } catch (error) {
         message.error("Request tokenpair list failed!");
@@ -106,8 +107,8 @@ const SwapForm = () => {
 
   const fetchAllBalances = async () => {
     const requests = [
-      { address: token.in.address, decimals: token.in.decimals },
-      { address: token.out.address, decimals: token.out.decimals },
+      { address: tokens.in.address, decimals: tokens.in.decimals },
+      { address: tokens.out.address, decimals: tokens.out.decimals },
     ].map(async ({ address, decimals }) => {
       return getTokenBalance(
         address,
@@ -141,7 +142,7 @@ const SwapForm = () => {
         return;
       }
 
-      const requiredAmount = ethers.parseUnits(amountIn, token.in.decimals);
+      const requiredAmount = ethers.parseUnits(amountIn, tokens.in.decimals);
       const isApproved = await checkAllowance(requiredAmount);
       if (isApproved) {
         messageApi.warning("Sufficient approved amount already exists");
@@ -150,31 +151,13 @@ const SwapForm = () => {
 
       setApproveLoading(true);
       const calldata = await fetchApproveCallData({
-        tokenAddress: token.in.address,
+        tokenAddress: tokens.in.address,
         spender: swapRout,
         amount: amountIn,
         owner: userAddress ?? "",
       });
-      if (
-        !calldata ||
-        !calldata.to ||
-        !calldata.data ||
-        !calldata.gasRecommendation
-      ) {
-        messageApi.error(`Failed to get token authorization data`);
-        return;
-      }
 
-      const trans_data = {
-        to: calldata.to,
-        data: calldata.data,
-        value: calldata.value || "0x0",
-        gasLimit: BigInt(calldata.gasRecommendation.gasLimit || "80000"),
-        maxFeePerGas: BigInt(
-          calldata.gasRecommendation.maxFeePerGas || "30000000000"
-        ),
-      };
-      const tx = await signer.sendTransaction(trans_data);
+      const tx = await signer.sendTransaction(calldata);
       await tx.wait();
       setTxHash(tx.hash);
       messageApi.success("Approve successful!");
@@ -192,10 +175,10 @@ const SwapForm = () => {
       messageApi.warning("Swap amount cannot be 0");
       return;
     }
-    const requiredAmount = ethers.parseUnits(amountIn, token.in.decimals);
+    const requiredAmount = ethers.parseUnits(amountIn, tokens.in.decimals);
     const balanceAmount = ethers.parseUnits(
       tokenInBalance.toString(),
-      token.in.decimals
+      tokens.in.decimals
     );
     const isApproved = await checkAllowance(requiredAmount);
     if (!isApproved) {
@@ -212,17 +195,13 @@ const SwapForm = () => {
       setSwapLoading(true);
       const payload = await fetchSwapPayload({
         userAddress: userAddress ?? "",
-        tokenIn: token.in.address,
-        tokenOut: token.out.address,
+        tokenIn: tokens.in.address,
+        tokenOut: tokens.out.address,
         swapAmount: amountIn,
         swapContract: swapRout,
         useDestinationAddress: useDestinationAddress,
         destinationAddress: useDestinationAddress ? destinationAddress : "",
       });
-      if (!payload || !payload.to || !payload.data || !payload.value) {
-        messageApi.error("Failed to get SwapPayload data");
-        return;
-      }
       const tx = await signer.sendTransaction(payload);
       await tx.wait();
       setTxHash(tx.hash);
@@ -236,17 +215,17 @@ const SwapForm = () => {
   };
 
   const verifySwapPair = () => {
-    if (token.in.address == token.out.address) {
+    if (tokens.in.address == tokens.out.address) {
       messageApi.warning("Pair not supported. Select another");
       return false;
     }
 
-    if (token.in.symbol == "USDT" && token.out.symbol == "USDC") {
+    if (tokens.in.symbol == "USDT" && tokens.out.symbol == "USDC") {
       messageApi.warning("Pair not supported. Select another");
       return false;
     }
 
-    if (token.in.symbol == "USDC" && token.out.symbol == "USDT") {
+    if (tokens.in.symbol == "USDC" && tokens.out.symbol == "USDT") {
       messageApi.warning("Pair not supported. Select another");
       return false;
     }
@@ -263,7 +242,7 @@ const SwapForm = () => {
       try {
         const owner = await signer.getAddress();
         const tokenContract = new ethers.Contract(
-          token.in.address,
+          tokens.in.address,
           abi.ERC20_ABI,
           provider
         );
@@ -278,7 +257,7 @@ const SwapForm = () => {
         return false;
       }
     },
-    [provider, signer, token.in.address, swapRout]
+    [provider, signer, tokens.in.address, swapRout]
   );
   return (
     <div
@@ -301,7 +280,7 @@ const SwapForm = () => {
         <Space direction="vertical" size="middle" style={{ width: "100%" }}>
           <div style={{ textAlign: "center", marginTop: 30, width: "100%" }}>
             <Title level={2} style={{ color: "#fff", marginBottom: 8 }}>
-              {token.in.symbol} <SwapOutlined /> {token.out.symbol}
+              {tokens.in.symbol} <SwapOutlined /> {tokens.out.symbol}
             </Title>
             <Text style={{ color: "#13c2c2" }}>
               Hold WUSD in your own wallet to get{" "}
@@ -330,10 +309,7 @@ const SwapForm = () => {
             </Button>
           ) : (
             <Space direction="vertical" size="middle" style={{ width: "100%" }}>
-              <Card
-                style={{ background: "#1f1f1f", border: "none" }}
-                bodyStyle={{ padding: 16 }}
-              >
+              <Card style={{ background: "#1f1f1f", border: "none" }}>
                 <Space
                   direction="vertical"
                   style={{ width: "100%" }}
@@ -344,7 +320,7 @@ const SwapForm = () => {
                   >
                     <Text style={{ color: "#fff" }}>From</Text>
                     <Text style={{ color: "#fff" }}>
-                      Balance: {tokenInBalance + " " + token.in.symbol}
+                      Balance: {tokenInBalance + " " + tokens.in.symbol}
                     </Text>
                   </div>
                   <div
@@ -364,9 +340,9 @@ const SwapForm = () => {
                       }}
                     />
                     <Select
-                      value={token.in.symbol}
+                      value={tokens.in.symbol}
                       onChange={(value) => {
-                        const newToken = token.list.find(
+                        const newToken = tokens.list.find(
                           (t) => t.symbol === value
                         );
                         if (newToken) {
@@ -382,7 +358,7 @@ const SwapForm = () => {
                         background: "#2f2f2f",
                       }}
                     >
-                      {token.list.map((token) => (
+                      {tokens.list.map((token) => (
                         <Select.Option
                           key={token.symbol}
                           value={token.symbol}
@@ -428,9 +404,27 @@ const SwapForm = () => {
                 </Space>
               </Card>
 
+              <Button
+                type="text"
+                icon={
+                  <SwapOutlined
+                    rotate={90}
+                    style={{ fontSize: "20px", color: "#1f1f1f" }}
+                  />
+                }
+                onClick={() => {
+                  setInToken(tokens.out);
+                  setOutToken(tokens.in);
+                }}
+                className={styles.swapButton}
+              />
+
               <Card
-                style={{ background: "#1f1f1f", border: "none" }}
-                bodyStyle={{ padding: 16 }}
+                style={{
+                  background: "#1f1f1f",
+                  border: "none",
+                  marginTop: -12,
+                }}
               >
                 <Space
                   direction="vertical"
@@ -442,7 +436,7 @@ const SwapForm = () => {
                   >
                     <Text style={{ color: "#fff" }}>To</Text>
                     <Text style={{ color: "#fff" }}>
-                      Balance: {tokenOutBalance + " " + token.out.symbol}
+                      Balance: {tokenOutBalance + " " + tokens.out.symbol}
                     </Text>
                   </div>
                   <div
@@ -461,9 +455,9 @@ const SwapForm = () => {
                       }}
                     />
                     <Select
-                      value={token.out.symbol}
+                      value={tokens.out.symbol}
                       onChange={(value) => {
-                        const newToken = token.list.find(
+                        const newToken = tokens.list.find(
                           (t) => t.symbol === value
                         );
                         if (newToken) {
@@ -479,7 +473,7 @@ const SwapForm = () => {
                         background: "#2f2f2f",
                       }}
                     >
-                      {token.list.map((token) => (
+                      {tokens.list.map((token) => (
                         <Select.Option
                           key={token.symbol}
                           value={token.symbol}
@@ -563,7 +557,7 @@ const SwapForm = () => {
                     borderColor: "#13c2c2",
                   }}
                 >
-                  {loading.approve ? <Spin /> : "Approve " + token.in.symbol}
+                  {loading.approve ? <Spin /> : "Approve " + tokens.in.symbol}
                 </Button>
                 <Button
                   type="primary"
@@ -580,7 +574,7 @@ const SwapForm = () => {
                   {loading.swap ? (
                     <Spin />
                   ) : (
-                    "Swap " + token.in.symbol + "→" + token.out.symbol
+                    "Swap " + tokens.in.symbol + "→" + tokens.out.symbol
                   )}
                 </Button>
               </Space>
@@ -607,4 +601,4 @@ const SwapForm = () => {
   );
 };
 
-export default SwapForm;
+export default SwapView;

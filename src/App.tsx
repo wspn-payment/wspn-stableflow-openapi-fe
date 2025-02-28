@@ -1,10 +1,10 @@
 import "./App.css";
-import SwapForm from "./components/SwapForm";
+import SwapView from "./components/swap/index";
 
 function App() {
   return (
     <div className="app">
-      <SwapForm />
+      <SwapView />
     </div>
   );
 }
