@@ -423,7 +423,6 @@ const SwapView = () => {
                 style={{
                   background: "#1f1f1f",
                   border: "none",
-                  marginTop: -12,
                 }}
               >
                 <Space
