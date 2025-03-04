@@ -6,8 +6,6 @@ const clientSecret = import.meta.env.VITE_COGNITO_CLIENT_SECRET;
 export async function getAccessToken() {
   const last_access_token = localStorage.getItem("AccessToken");
   const expiresAt = Number(localStorage.getItem("ExpiresAt"));
-  
-  // 如果没有token或者token已过期，重新获取
   if (!last_access_token || Date.now() >= expiresAt) {
     const params = new URLSearchParams({
       grant_type: "client_credentials",
@@ -29,12 +27,11 @@ export async function getAccessToken() {
       return null;
     }
     const access_token = `Bearer ${data.access_token}`;
-    // 计算过期时间戳（当前时间 + expires_in秒）
     const expiresAt = Date.now() + data.expires_in * 1000;
     localStorage.setItem("AccessToken", access_token);
     localStorage.setItem("ExpiresAt", String(expiresAt));
     return access_token;
   }
-  
+
   return last_access_token;
 }
