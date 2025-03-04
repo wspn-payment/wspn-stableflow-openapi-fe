@@ -21,6 +21,7 @@ import {
   fetchApproveCallData,
   fetchSwapPayload,
 } from "@/api/swap";
+import { getAccessToken } from "@/api/auth";
 import useTokenManagement from "@/hooks/useTokenManagement";
 import { getTokenBalance, NETWORKS } from "@/hooks/useNetwork";
 import styles from "./index.module.css";
@@ -75,6 +76,10 @@ const SwapView = () => {
       handleError(error);
     }
   };
+
+  useEffect(() => {
+    getAccessToken();
+  }, []);
 
   const setupNetworkListener = () => {
     window.ethereum.on("chainChanged", (chainId) => {

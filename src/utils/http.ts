@@ -1,4 +1,5 @@
 import { message } from "antd";
+import { getAccessToken } from "@/api/auth";
 
 type Interceptor = {
   request?: (config: RequestInit) => RequestInit;
@@ -27,9 +28,14 @@ class HttpRequest {
         ? this.interceptors.request(config)
         : config;
 
+      const access_token = localStorage.getItem("AccessToken");
       const fullUrl = `${this.baseURL}${url}`;
       const response = await fetch(fullUrl, {
         ...mergedConfig,
+        headers: {
+          ...mergedConfig.headers,
+          ...(access_token ? { Authorization: access_token } : {}),
+        },
         signal: controller.signal,
       });
 
@@ -37,6 +43,9 @@ class HttpRequest {
       if (resdata.code === 200) {
         resdata = resdata.data;
       } else {
+        if (resdata.message.includes("token has expired")) {
+          await getAccessToken();
+        }
         message.error(resdata.message);
       }
       return resdata;
@@ -63,16 +72,18 @@ class HttpRequest {
 }
 
 const http = new HttpRequest({
-  baseURL: import.meta.env.VITE_API_BASE_URL,
+  baseURL: '/api',
   timeout: 15000,
 });
 
 http.use({
   request: (config) => {
+    const access_token = localStorage.getItem("access_token");
     return {
       ...config,
       headers: {
         ...config.headers,
+        ...(access_token ? { Authorization: access_token } : {}),
       },
     };
   },

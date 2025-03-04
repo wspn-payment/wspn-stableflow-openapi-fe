@@ -1,10 +1,3 @@
-/*
- * @Author: 李志刚
- * @Date: 2025-02-28 00:32:50
- * @LastEditors: 李志刚
- * @LastEditTime: 2025-02-28 17:15:46
- * @Description:
- */
 import { defineConfig } from "vite";
 import react from "@vitejs/plugin-react";
 import path from "path";
@@ -21,6 +14,20 @@ export default defineConfig({
   server: {
     open: true,
     host: true,
+    cors: true,
+    proxy: {
+      '/api': {
+        target: 'https://openapi-devapi.swapflow.io',
+        changeOrigin: true,
+        secure: false,
+        rewrite: (path) => path.replace(/^\/api/, '/api'),
+        headers: {
+          'Access-Control-Allow-Origin': '*',
+          'Access-Control-Allow-Methods': 'GET,PUT,POST,DELETE,PATCH,OPTIONS',
+          'Access-Control-Allow-Headers': 'Content-Type, Authorization'
+        }
+      }
+    }
   },
   preview: {
     host: true,
