@@ -526,7 +526,13 @@ const SwapView = () => {
                   size="large"
                   block
                   onClick={connectWallet}
-                  style={{ height: 48, background: "#13c2c2", marginTop: 16 }}
+                  style={{
+                    flex: 1,
+                    height: 48,
+                    marginTop: 16,
+                    background: "linear-gradient(90deg, #1890ff 0%, #13c2c2 100%)",
+                    borderColor: "transparent",
+                  }}
                 >
                   Connect wallet
                 </Button>
@@ -546,7 +552,7 @@ const SwapView = () => {
                     disabled={loading.approve || loading.swap}
                     style={{
                       height: 48,
-                      background: "#13c2c2",
+                      background: "linear-gradient(90deg, #1890ff 0%, #13c2c2 100%)",
                       borderColor: "#13c2c2",
                     }}
                   >
@@ -561,7 +567,7 @@ const SwapView = () => {
                     style={{
                       height: 48,
                       marginTop: 10,
-                      background: "#13c2c2",
+                      background: "linear-gradient(90deg, #1890ff 0%, #13c2c2 100%)",
                       borderColor: "#13c2c2",
                     }}
                   >

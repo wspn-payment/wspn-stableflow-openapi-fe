@@ -88,10 +88,11 @@ export default function HoldView({ userAddress, wusdAmount }: Props) {
           block
           onClick={handleConnectWallet}
           style={{
+            flex: 1,
             height: 48,
-            background: "#13c2c2",
-            borderColor: "#13c2c2",
             marginTop: 16,
+            background: "linear-gradient(90deg, #1890ff 0%, #13c2c2 100%)",
+            borderColor: "transparent",
           }}
         >
           Connect Wallet
@@ -122,9 +123,10 @@ export default function HoldView({ userAddress, wusdAmount }: Props) {
                   navigate("/swap");
                 }}
                 style={{
+                  flex: 1,
                   height: 48,
-                  background: "#13c2c2",
-                  borderColor: "#13c2c2",
+                  background: "linear-gradient(90deg, #1890ff 0%, #13c2c2 100%)",
+                  borderColor: "transparent",
                 }}
               >
                 Go to Swap
@@ -147,9 +149,10 @@ export default function HoldView({ userAddress, wusdAmount }: Props) {
                 size="large"
                 block
                 style={{
+                  flex: 1,
                   height: 48,
-                  background: "#13c2c2",
-                  borderColor: "#13c2c2",
+                  background: "linear-gradient(90deg, #1890ff 0%, #13c2c2 100%)",
+                  borderColor: "transparent",
                 }}
               >
                 Go to Bridge
