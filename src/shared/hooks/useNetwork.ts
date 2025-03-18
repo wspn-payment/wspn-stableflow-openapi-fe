@@ -1,5 +1,5 @@
 import { BrowserProvider, ethers } from "ethers";
-import { abi } from "../contracts/index";
+import { abi } from "../../contracts/index";
 const rpcUrl = import.meta.env.VITE_ETH_RPC_URL;
 const blockchainUrl = import.meta.env.VITE_ETH_BLOCKCHAIN_URL;
 export const NETWORKS = {

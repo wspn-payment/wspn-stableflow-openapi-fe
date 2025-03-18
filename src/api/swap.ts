@@ -1,4 +1,4 @@
-import { http } from "@/utils/http";
+import { http } from "@/shared/utils/request";
 import { message } from "antd";
 
 const tokenPairApi = "/swap/tokenpair/list";

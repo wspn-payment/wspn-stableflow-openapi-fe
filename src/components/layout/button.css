@@ -1,0 +1,16 @@
+.ant-btn:active,
+.ant-btn:focus,
+.ant-btn:hover {
+  box-shadow: none !important;
+  outline: none !important;
+}
+
+.ant-btn::after {
+  display: none !important;
+}
+
+.ant-btn-primary:active,
+.ant-btn-primary:focus {
+  background: inherit !important;
+  border-color: inherit !important;
+}

@@ -1,11 +1,23 @@
 import "./App.css";
-import SwapView from "./components/swap/index";
+import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
+import SwapView from "./components/swap";
+import EarnView from "./components/earn";
+import AppLayout from "./components/layout";
+import { WalletProvider } from "./shared/context/WalletContext";
 
 function App() {
   return (
-    <div className="app">
-      <SwapView />
-    </div>
+    <WalletProvider>
+      <BrowserRouter>
+        <Routes>
+          <Route path="/" element={<AppLayout />}>
+            <Route index element={<Navigate to="/swap" replace />} />
+            <Route path="swap" element={<SwapView />} />
+            <Route path="earn" element={<EarnView />} />
+          </Route>
+        </Routes>
+      </BrowserRouter>
+    </WalletProvider>
   );
 }
 
