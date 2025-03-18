@@ -1,0 +1,36 @@
+.custom-menu .ant-menu-item {
+  margin: 0 8px;
+  padding: 0 16px;
+  border-radius: 4px;
+  transition: all 0.3s;
+}
+
+.custom-menu .ant-menu-item:hover {
+  background-color: rgba(24, 144, 255, 0.1);
+  color: #1890ff;
+}
+
+.custom-menu .ant-menu-item-selected {
+  background: linear-gradient(90deg, rgba(24, 144, 255, 0.2) 0%, rgba(19, 194, 194, 0.2) 100%) !important;
+  color: #13c2c2 !important;
+  font-weight: bold;
+}
+
+.custom-menu .ant-menu-item-selected::after {
+  border-bottom: 2px solid #13c2c2 !important;
+}
+
+.wallet-button {
+  position: relative;
+  overflow: hidden;
+}
+
+.wallet-button:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+}
+
+.wallet-button:active {
+  transform: translateY(1px);
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.15);
+}

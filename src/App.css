@@ -76,3 +76,30 @@
   margin: 1rem auto;
   max-width: 600px;
 }
+
+/* 自定义菜单样式 */
+.custom-menu .ant-menu-item {
+  margin: 0 8px;
+  padding: 0 12px;
+  border-radius: 4px;
+  transition: all 0.3s;
+}
+
+.custom-menu .ant-menu-item:hover {
+  background-color: rgba(24, 144, 255, 0.1);
+  color: #1890ff;
+}
+
+.custom-menu .ant-menu-item-selected {
+  background: linear-gradient(90deg, rgba(24, 144, 255, 0.2) 0%, rgba(19, 194, 194, 0.2) 100%);
+  color: #13c2c2 !important;
+  font-weight: bold;
+}
+
+.custom-menu .ant-menu-item-selected::after {
+  border-bottom: 2px solid #13c2c2 !important;
+}
+
+.custom-menu .ant-menu-item-active {
+  color: #13c2c2;
+}
