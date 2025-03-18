@@ -1,98 +1,106 @@
 import { motion } from "framer-motion";
-import { useEffect, useState } from "react";
-// import { contractInfo } from '@/contracts';
+import { useState, useEffect } from "react";
+import { Card, Space } from "antd";
+import { BrowserProvider } from "ethers";
+import { tokenList } from "@/contracts/index";
 import HoldView from "./components/hold-view";
 import ClaimView from "./components/claim-view";
 import { useWallet } from "@/shared/hooks/useWallet";
-// import useGetBalances from '@/shared/hooks/useGetBalances';
+import { getTokenBalance } from "@/shared/hooks/useNetwork";
+import useTokenManagement from "@/shared/hooks/useTokenManagement";
 
 export default function Earn() {
-  const wusdAmount = "0";
+  const [wusdAmount, setWusdAmount] = useState("0");
   const [activeTab, setActiveTab] = useState("hold");
-  const [cardHeight, setCardHeight] = useState(400);
-  const { userAddress } = useWallet();
-  // const { WUSD_TOKEN } = contractInfo;
-  // const { wusdAmount } = useGetBalances({
-  //     tokenIn: WUSD_TOKEN,
-  //     tokenOut: WUSD_TOKEN,
-  //     type: 'earn',
-  // });
+  const { userAddress, provider } = useWallet();
+  const [tokens] = useTokenManagement(tokenList);
   useEffect(() => {
-    if (activeTab === "hold") {
-      if (userAddress) {
-        if (parseFloat(wusdAmount || "0") > 0) {
-          setCardHeight(280);
-        } else {
-          setCardHeight(400);
-        }
-      } else {
-        setCardHeight(350);
-      }
-    } else {
-      setCardHeight(500);
-    }
-  }, [activeTab, wusdAmount, userAddress]);
-  return (
-    <div className="flex flex-col flex-1">
-      <div className="w-full flex-1 flex flex-col">
-        <div className="flex flex-col items-center gap-4 mobile:gap-0 pt-12 mobile:pt-5 max_tablet:pb-10 max_tablet:pt-5">
-          <div className="flex flex-col items-center gap-1 max-w-[91vw]">
-            <div className="text-[53px] mobile:text-[40px] font-bold text-white whitespace-nowrap leading-tight">
-              Hold{" "}
-              <span className="text-emerald-400 leading-[52px]">
-                &quot;WUSD&quot;
-              </span>{" "}
-              to Earn
-            </div>
-            <div className="text-[18px] text-gray-300 text-center whitespace-nowrap">
-              Retain Full Ownership of Your liquidity While Earning Freely
-            </div>
-          </div>
-        </div>
+    if (!provider) return;
+    getTokenBalance(
+      tokens.in.address,
+      tokens.in.decimals,
+      userAddress ?? "",
+      provider as BrowserProvider
+    ).then((balance) => {
+      setWusdAmount(balance.toString());
+    });
+  }, [provider, userAddress]);
 
-        <motion.div
-          initial="hidden"
-          animate="visible"
-          exit="exit"
-          transition={{ duration: 0.5 }}
-          variants={{
-            hidden: { opacity: 0, x: -100 },
-            visible: { opacity: 1, x: 0 },
-            exit: { opacity: 0, x: 100 },
+  return (
+    <div style={{ display: "flex", flexDirection: "column", flex: 1 }}>
+      <div
+        style={{
+          width: "100%",
+          display: "flex",
+          flexDirection: "column",
+          flex: 1,
+        }}
+      >
+        <div
+          style={{
+            width: "100%",
+            display: "flex",
+            justifyContent: "center",
+            alignItems: "center",
+            marginTop: 40,
           }}
-          className="w-full flex-1 flex items-center justify-center mt-10"
         >
-          <div className="w-[579px] mobile:w-[343px] relative m-auto text-white max-w-[91vw] bg-no-repeat bg-contain bg-center rounded-2xl shadow-lg border border-[#26D3A6]/20" style={{ background: "linear-gradient(180deg, #001529 0%, #000000 100%)" }}>
+          <Card
+            style={{
+              width: 579,
+              maxWidth: "91vw",
+              background: "#141414",
+              borderRadius: 16,
+              border: "1px solid #303030",
+              position: "relative",
+              overflow: "hidden",
+            }}
+          >
             <img
-              className="absolute max-w-full z-[-1]"
+              style={{
+                position: "absolute",
+                maxWidth: "100%",
+                zIndex: -1,
+                top: 0,
+                left: 0,
+                width: "100%",
+                height: "100%",
+                objectFit: "cover",
+              }}
               src={
                 activeTab === "hold"
                   ? "/images/bg_earn_hold_card.png"
                   : "/images/bg_earn_claim_card.png"
               }
-              alt="modal"
-              width={579}
-              height={cardHeight}
+              alt="background"
             />
-            <div className="flex flex-col justify-center p-4 iphone:px-3 iphone:py-4">
-              <div className="flex gap-4 mb-4">
+            <Space direction="vertical" size="middle" style={{ width: "100%" }}>
+              <div style={{ display: "flex", gap: 16, marginBottom: 16 }}>
                 <div
                   onClick={() => setActiveTab("hold")}
-                  className={`component-text-title-2-emphasized iphone:text-[20px] p-2 cursor-pointer ${
-                    activeTab === "hold"
-                      ? "border-b-2 border-solid border-emerald-400 font-bold text-white"
-                      : "text-gray-400 hover:text-white transition-colors duration-200"
-                  }`}
+                  style={{
+                    padding: "8px 16px",
+                    cursor: "pointer",
+                    color: activeTab === "hold" ? "#fff" : "#8c8c8c",
+                    fontWeight: activeTab === "hold" ? 600 : 500,
+                    fontSize: 18,
+                    borderBottom:
+                      activeTab === "hold" ? "2px solid #13c2c2" : "none",
+                  }}
                 >
                   Hold
                 </div>
                 <div
                   onClick={() => setActiveTab("claim")}
-                  className={`component-text-title-2-emphasized iphone:text-[20px] p-2 cursor-pointer ${
-                    activeTab === "claim"
-                      ? "border-b-2 border-solid border-emerald-400 font-bold text-white"
-                      : "text-gray-400 hover:text-white transition-colors duration-200"
-                  }`}
+                  style={{
+                    padding: "8px 16px",
+                    cursor: "pointer",
+                    color: activeTab === "claim" ? "#fff" : "#8c8c8c",
+                    fontWeight: activeTab === "claim" ? 600 : 500,
+                    fontSize: 18,
+                    borderBottom:
+                      activeTab === "claim" ? "2px solid #13c2c2" : "none",
+                  }}
                 >
                   Claim
                 </div>
@@ -113,9 +121,9 @@ export default function Earn() {
                   <ClaimView />
                 )}
               </motion.div>
-            </div>
-          </div>
-        </motion.div>
+            </Space>
+          </Card>
+        </div>
       </div>
     </div>
   );

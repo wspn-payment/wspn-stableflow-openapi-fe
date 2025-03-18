@@ -1,0 +1,62 @@
+.earnCard {
+  background: #141414;
+  border-radius: 16px;
+  border: 1px solid #303030;
+  width: 100%;
+  max-width: 500px;
+}
+
+.tabContainer {
+  display: flex;
+  gap: 16px;
+  margin-bottom: 16px;
+}
+
+.tab {
+  padding: 8px 16px;
+  cursor: pointer;
+  color: #8c8c8c;
+  font-weight: 500;
+  font-size: 18px;
+  transition: color 0.3s;
+}
+
+.activeTab {
+  color: #fff;
+  border-bottom: 2px solid #13c2c2;
+  font-weight: 600;
+}
+
+.walletAddressContainer {
+  display: flex;
+  align-items: center;
+  padding: 12px 16px;
+  background: #1f1f1f;
+  border-radius: 8px;
+  margin-top: 16px;
+  margin-bottom: 16px;
+  border: 1px solid #13c2c2;
+}
+
+.connectButton {
+  height: 48px;
+  background: #13c2c2;
+  border-color: #13c2c2;
+  margin-top: 16px;
+  width: 100%;
+}
+
+.tokenInfo {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 24px;
+}
+
+.apyBadge {
+  background: #006d75;
+  padding: 2px 8px;
+  border-radius: 4px;
+  color: #fff;
+  font-weight: 500;
+}

@@ -62,7 +62,7 @@ const AppLayout: FC = () => {
           display: "flex",
           alignItems: "center",
           background: "#141414",
-          padding: "0 50px",
+          padding: "0 15px",
           borderBottom: "1px solid #303030",
         }}
       >
