@@ -6,8 +6,7 @@ import {
   LineChartOutlined,
   WalletOutlined,
 } from "@ant-design/icons";
-import { useWallet } from "@/shared/hooks/useWallet";
-import "./index.css"; 
+import { useWallet } from "@/shared/hooks/useWallet"; 
 const { Header, Content } = Layout;
 
 const AppLayout: FC = () => {
@@ -109,10 +108,9 @@ const AppLayout: FC = () => {
             borderColor: userAddress ? "#1f3d5c" : "transparent",
             borderRadius: "6px",
             transition: "all 0.3s",
-            boxShadow: "0 2px 8px rgba(0, 0, 0, 0.15)",
             fontWeight: "bold",
+            boxShadow: userAddress ? "none" : "0 2px 8px rgba(24, 144, 255, 0.3)",
           }}
-          className="wallet-button"
         >
           {userAddress ? formatAddress(userAddress) : "Connect Wallet"}
         </Button>
@@ -122,7 +120,6 @@ const AppLayout: FC = () => {
           padding: 24,
           minHeight: 280,
           background: "#ffffff",
-          color: "#ffffff",
         }}
       >
         <Outlet />
