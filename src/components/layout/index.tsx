@@ -117,8 +117,8 @@ const AppLayout: FC = () => {
       </Header>
       <Content
         style={{
-          padding: 24,
-          minHeight: 280,
+          padding: 20,
+          minHeight: 350,
           background: "#ffffff",
         }}
       >
