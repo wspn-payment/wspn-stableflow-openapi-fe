@@ -4,27 +4,19 @@ import { useWallet } from "@/shared/hooks/useWallet";
 import WalletAddressView from "../walletaddress-view";
 
 const { Text } = Typography;
-
+const generateYears = (startYear: number, endYear: number) => {
+  return Array.from({ length: endYear - startYear + 1 }, (_, i) => (startYear + i).toString());
+};
 const ClaimView = () => {
+  const { userAddress } = useWallet();
   const date = new Date();
   const monthIndex = date.getMonth();
-  const { userAddress } = useWallet();
-
-  const months = [
-    "Jan",
-    "Feb",
-    "Mar",
-    "Apr",
-    "May",
-    "Jun",
-    "Jul",
-    "Aug",
-    "Sep",
-    "Oct",
-    "Nov",
-    "Dec",
-  ];
+  const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
   const [selectedMonth, setSelectedMonth] = useState(months[monthIndex]);
+  const currentYear = date.getFullYear();
+  const years = generateYears(2024, currentYear);
+  const [selectedYear, setSelectedYear] = useState(currentYear.toString());
+
 
   // 模拟数据 - 实际应用中应从API获取
   const rewardAmount = "0.170091";
@@ -54,6 +46,19 @@ const ClaimView = () => {
       <div style={{ marginBottom: "24px" }}>
         <div style={{ marginBottom: "16px" }}>
           <Text style={{ color: "#8c8c8c" }}>Rewards Earned</Text>
+        </div>
+        <div className="flex items-center mt-2">
+          <select
+              className="bg-transparent text-white cursor-pointer p-1"
+              onChange={(e) => setSelectedYear(e.target.value)}
+              value={selectedYear}
+          >
+              {years.map((year) => (
+                  <option key={year} value={year} className="bg-[#1A2527] text-black">
+                      Year: {year}
+                  </option>
+              ))}
+          </select>
         </div>
         <div
           style={{
