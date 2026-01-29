@@ -26,7 +26,7 @@
     "ethers": "^6.13.5",
     "framer-motion": "^12.4.4",
     "globals": "^15.14.0",
-    "next": "^15.2.3",
+    "next": "^16.1.5",
     "react": "^19.0.0",
     "react-countup": "^6.5.3",
     "react-dom": "^19.0.0",
